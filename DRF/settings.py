@@ -83,8 +83,8 @@ DATABASES = {
         'ENGINE': 'dj_db_conn_pool.backends.mysql',
         'NAME': 'django_drf',  # 数据库名字
         'USER': 'root',
-        'PASSWORD': 'a135246A',
-        'HOST': '10.100.70.14',  # ip
+        'PASSWORD': '123456',
+        'HOST': '127.0.0.1',  # ip
         'PORT': 3306,
         'POOL_OPTIONS': {
             'POOL_SIZE': 10,  # 最小
