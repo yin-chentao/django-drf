@@ -16,11 +16,14 @@ class Students1Serializer(serializers.ModelSerializer):
                                    error_messages={"min_value": "年龄不能小于或等于0"})
     description = serializers.CharField(allow_null=True, allow_blank=True)
 
+    # def create(self, validated_data):
+    #     students = Student.objects.create(**validated_data)
+    #     return students
+
     def validate_name(self, data):
         if data in ['django', '菩提老祖']:
             raise serializers.ValidationError(detail='姓名不能为django或菩提老祖', code='validate_name')
         return data
-
 
     class Meta:
         model = Student
