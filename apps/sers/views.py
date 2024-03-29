@@ -14,7 +14,7 @@ class StudentView(View):
         # 获取请求数据
         data = json.loads(request.body)
         # 判断是否存在id,不存在则创建,存在则更新
-        if data["id"] is None:
+        if data.get("id", None) is None:
             # 反序列化数据
             serializer = Students1Serializer(data=data)
             # 判断数据是否符合要求;不符合则raise_exception=True抛出异常
