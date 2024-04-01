@@ -3,7 +3,7 @@ import json
 from django.views import View
 from django.http import JsonResponse
 
-from .serializers import Students1Serializer
+from .serializers import StudentsModelSerializer
 from apps.student.models import *
 
 
@@ -16,7 +16,7 @@ class StudentView(View):
         # 判断是否存在id,不存在则创建,存在则更新
         if data.get("id", None) is None:
             # 反序列化数据
-            serializer = Students1Serializer(data=data)
+            serializer = StudentsModelSerializer(data=data)
             # 判断数据是否符合要求;不符合则raise_exception=True抛出异常
             serializer.is_valid(raise_exception=True)
             # 序列化只有data参数则save()调用create方法
@@ -29,7 +29,9 @@ class StudentView(View):
             except Student.DoesNotExist:
                 return JsonResponse({"errors": "无数据!"}, status=400, json_dumps_params={'ensure_ascii': False})
             # partial:可以只接受有的参数跳过校验
-            serializer = Students1Serializer(instance=student, data=data, partial=True)
+            # 更新 `name` ，不需要验证其他的字段，可以设置partial=True
+            # serializer = StudentsModelSerializer(student, data={'name': data.get('name')}, partial=True)
+            serializer = StudentsModelSerializer(instance=student, data=data)
             serializer.is_valid(raise_exception=True)
             # 序列化存在instance也data参数则save()调用update方法更新数据
             serializer.save()
@@ -38,7 +40,7 @@ class StudentView(View):
 
     def get(self, request):
         students = Student.objects.all()
-        serializer = Students1Serializer(students, many=True)
+        serializer = StudentsModelSerializer(students, many=True)
         data = serializer.data
 
         # data = serializer.data

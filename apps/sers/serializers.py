@@ -3,7 +3,11 @@
 # @Author  : yinchentao
 # @File    : serializers.py
 from rest_framework import serializers
+from django.core.exceptions import ValidationError
+
 from apps.student.models import *
+
+
 
 
 class Students1Serializer(serializers.ModelSerializer):
@@ -25,6 +29,30 @@ class Students1Serializer(serializers.ModelSerializer):
             raise serializers.ValidationError(detail='姓名不能为django或菩提老祖', code='validate_name')
         return data
 
+
+class StudentsModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
         fields = '__all__'
+        read_only_fields = ['id']
+        extra_kwargs = {
+            'name': {
+                "required": True,
+                "max_length": 30,
+                'error_messages': {
+                    "required": "名字不能为空",
+                    "max_length": "不能超过30位字符"
+                                   }
+            },
+            'sex': {
+                "required": True,
+                'error_messages': {
+                    "required": "性别不能为空"
+                }
+                }
+        }
+
+    def validate_age(self, value):
+        if value <= 0:
+            raise ValidationError("年龄不能小于或等于0")
+        return value
