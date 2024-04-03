@@ -6,4 +6,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('book/', views.BookInfoAPIView.as_view()),
+    path('book1/', views.BookInfoGenericAPIView.as_view()),
+    # path('book/<int:pk>', views.BookInfoAPIView.as_view())
 ]

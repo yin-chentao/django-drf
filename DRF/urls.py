@@ -23,5 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('apps.student.urls')),
     path('sers/', include('apps.sers.urls')),
+    path('req/', include('apps.req.urls')),
+    path('demo/', include('apps.demo.urls')),
 
 ]
