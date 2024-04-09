@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -57,7 +57,7 @@ class BookInfoAPIView(APIView):
             return Response(res)
 
 
-class BookInfoGenericAPIView(GenericAPIView, ListModelMixin):
+class BookInfoGenericAPIView(GenericAPIView, ListModelMixin, CreateModelMixin):
     queryset = BookInfo.objects.all()
     serializer_class = BookInfoModuleSerializers
 
@@ -93,13 +93,14 @@ class BookInfoGenericAPIView(GenericAPIView, ListModelMixin):
                 return Response({'code': status.HTTP_400_BAD_REQUEST, "msg": "无数据!"})
             data_ser = self.get_serializer(queryset, data)
             data_ser.is_valid(raise_exception=True)
-            data_ser.save()
+            data_ser.save(editby=self.request.user.username)
             res = {'code': status.HTTP_200_OK, "msg": "更新成功", 'data': data_ser.data}
             return Response(res)
 
         else:
-            data_ser = self.get_serializer(data=data)
-            data_ser.is_valid(raise_exception=True)
-            data_ser.save()
-            res = {'code': status.HTTP_200_OK, "msg": "创建成功", 'data': data_ser.data}
+            # data_ser = self.get_serializer(data=data)
+            # data_ser.is_valid(raise_exception=True)
+            # self.create(request, createby=self.request.user.username)
+            self.create(request, createby=self.request.user.username)
+            res = {'code': status.HTTP_200_OK, "msg": "创建成功"}
             return Response(res)

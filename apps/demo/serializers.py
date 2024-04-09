@@ -10,7 +10,7 @@ from .models import BookInfo
 class BookInfoModuleSerializers(serializers.ModelSerializer):
     class Meta:
         model = BookInfo
-        fields = ["id", "name", "author", "lend", "description"]
+        fields = ["id", "name", "author", "lend", "description", "createby", "editby"]
         read_only_fields = ["id"]
         extra_kwargs = {
             "name": {
