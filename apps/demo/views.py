@@ -1,11 +1,20 @@
+import json
+
 from django.shortcuts import render
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin, CreateModelMixin
-from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.parsers import FileUploadParser, MultiPartParser
+from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import BookInfoModuleSerializers
-from .models import BookInfo
+import os
+from django.http import HttpResponse, FileResponse, StreamingHttpResponse
+from django.utils.encoding import escape_uri_path
+
+from .customresponse import CustomResponse
+from .serializers import BookInfoModuleSerializers, UploadedFileSerializer
+from .models import BookInfo, BookFile
+from .mypage import MyPage
 
 
 # Create your views here.
@@ -57,50 +66,103 @@ class BookInfoAPIView(APIView):
             return Response(res)
 
 
-class BookInfoGenericAPIView(GenericAPIView, ListModelMixin, CreateModelMixin):
+class BookInfoGenericAPIView(GenericAPIView, ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin):
+    # lookup_field = 'pk'
+    pagination_class = MyPage
     queryset = BookInfo.objects.all()
     serializer_class = BookInfoModuleSerializers
 
-    def get(self, request):
-        book_id = request.query_params.get('id', None)
+    def create(self, request, *args, **kwargs):
+        # 获取请求的数据列表
+        data_list = request.data if isinstance(request.data, list) else [request.data]
+
+        # 对每条数据进行序列化和保存
+        serializer = self.get_serializer(data=data_list, many=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_bulk_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+
+        return Response(serializer.data, status=201, headers=headers)
+
+    def perform_bulk_create(self, serializer):
+        serializer.save(createby=self.request.user.username)
+
+    def perform_update(self, serializer):
+        serializer.save(editby=self.request.user.username)
+
+    def get(self, request, *args, **kwargs):
         # 传参存在ID则查询单条数据不存在则查询所有数据
-        if book_id:
-            try:
-                queryset = self.get_queryset().get(id=book_id)
-            except BookInfo.DoesNotExist:
-                return Response({'code': status.HTTP_400_BAD_REQUEST, "msg": "单个无数据!"})
-            data_ser = self.get_serializer(queryset)
-            res = {'code': status.HTTP_200_OK, 'data': data_ser.data}
-            return Response(res)
+        if kwargs.get('pk', None):
+            return CustomResponse(code=status.HTTP_200_OK, msg='OK', data=[self.retrieve(request).data])
         else:
-            queryset = self.get_queryset().all()
-            data_ser = self.get_serializer(queryset, many=True)
-            if queryset:
-                res = {'code': status.HTTP_200_OK, 'data': data_ser.data}
-                # return self.list(queryset)
-                return Response(res)
-            else:
-                return Response({'code': status.HTTP_400_BAD_REQUEST, "msg": "无数据!", })
+            return self.list(request)
+
+    def post(self, request, *args, **kwargs):
+        # 传参存在ID则更新数据不存在则新增数据
+        if kwargs.get('pk', None):
+            self.update(request)
+            return CustomResponse(code=status.HTTP_200_OK, msg='OK')
+
+        else:
+            self.create(request)
+            return CustomResponse(code=status.HTTP_200_OK, msg='OK')
+
+
+class BookInfoDelete(APIView):
+    serializer_book = BookInfoModuleSerializers
+    queryset_book = BookInfo.objects.all()
 
     def post(self, request):
-        book_id = request.data.get('id', None)
-        data = request.data
-        # 传参存在ID则更新数据不存在则新增数据
-        if book_id:
-            try:
-                queryset = self.get_queryset().get(id=book_id)
-            except BookInfo.DoesNotExist:
-                return Response({'code': status.HTTP_400_BAD_REQUEST, "msg": "无数据!"})
-            data_ser = self.get_serializer(queryset, data)
-            data_ser.is_valid(raise_exception=True)
-            data_ser.save(editby=self.request.user.username)
-            res = {'code': status.HTTP_200_OK, "msg": "更新成功", 'data': data_ser.data}
-            return Response(res)
+        book_id = request.data.get("id")
+        try:
+            book = self.queryset_book.get(pk=book_id)
+        except BookInfo.DoesNotExist:
+            return CustomResponse(code=status.HTTP_400_BAD_REQUEST, msg="该数据已删除")
+        book.delete()
+        return Response({'code': status.HTTP_200_OK, "msg": "删除成功", })
 
+
+class BookFileView(ListCreateAPIView, ListModelMixin, RetrieveModelMixin, UpdateModelMixin):
+    queryset = BookFile.objects.all()
+    pagination_class = MyPage
+    serializer_class = UploadedFileSerializer
+    parser_classes = (MultiPartParser, FileUploadParser)
+
+    def perform_create(self, serializer):
+        serializer.save(createby=self.request.user.username)
+
+    def perform_update(self, serializer):
+        serializer.save(editby=self.request.user.username)
+
+    def post(self, request, *args, **kwargs):
+        if kwargs.get('pk', None):
+            self.update(request)
+            return CustomResponse(code=status.HTTP_200_OK, msg='OK')
         else:
-            # data_ser = self.get_serializer(data=data)
-            # data_ser.is_valid(raise_exception=True)
-            # self.create(request, createby=self.request.user.username)
-            self.create(request, createby=self.request.user.username)
-            res = {'code': status.HTTP_200_OK, "msg": "创建成功"}
-            return Response(res)
+            self.create(request)
+            return CustomResponse(code=status.HTTP_200_OK, msg='OK')
+
+    def get(self, request, *args, **kwargs):
+        if kwargs.get('pk', None):
+            return self.retrieve(request)
+        else:
+            return self.list(request)
+
+
+class BookFileDownload(GenericAPIView):
+    queryset = BookFile.objects.all()
+    serializer_class = UploadedFileSerializer
+    # parser_classes = (MultiPartParser, FileUploadParser)
+
+    def get(self, request, *args, **kwargs):
+        file_id = kwargs.get('pk')
+        file_path = str(self.get_queryset().get(id=file_id).file)
+        file_name = str(self.get_queryset().get(id=file_id).file)
+        file_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'media'), file_path)
+        if os.path.exists(file_path):
+            response = FileResponse(open(file_path, 'rb'))
+            response['Content-Type'] = "application/octet-stream"
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(escape_uri_path(file_name))
+            return response
+        else:
+            return HttpResponse("Sorry, the file you requested does not exist.")

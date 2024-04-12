@@ -163,3 +163,4 @@ cython_debug/
 **/__pycache__
 **/migrations/
 **/settings.py
+**/media/**

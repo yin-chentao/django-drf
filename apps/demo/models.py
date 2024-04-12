@@ -16,3 +16,16 @@ class BookInfo(models.Model):
         db_table = "BookInfo"
         verbose_name = "书籍"
         verbose_name_plural = verbose_name
+
+
+class BookFile(models.Model):
+    name = models.CharField(max_length=20, verbose_name='文件名')
+    file = models.FileField()
+    createby = models.CharField(max_length=30, default='system', verbose_name='创建人')
+    editby = models.CharField(max_length=30, default=None, verbose_name='修改人', blank=True, null=True)
+
+    class Meta:
+        db_table = 'file'
+        verbose_name = '文件'
+        verbose_name_plural = verbose_name
+

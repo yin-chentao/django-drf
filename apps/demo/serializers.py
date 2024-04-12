@@ -4,14 +4,14 @@
 # @File    : serializers.py
 from rest_framework import serializers
 
-from .models import BookInfo
+from .models import BookInfo, BookFile
 
 
 class BookInfoModuleSerializers(serializers.ModelSerializer):
     class Meta:
         model = BookInfo
-        fields = ["id", "name", "author", "lend", "description", "createby", "editby"]
-        read_only_fields = ["id"]
+        fields = ["id", "name", "author", "lend", "description"]
+        read_only_fields = ["id", "createby", "editby"]
         extra_kwargs = {
             "name": {
                 "required": True,
@@ -24,3 +24,9 @@ class BookInfoModuleSerializers(serializers.ModelSerializer):
             }
         }
 
+
+class UploadedFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookFile
+        fields = '__all__'
+        read_only_fields = ["id", "createby", "editby"]
