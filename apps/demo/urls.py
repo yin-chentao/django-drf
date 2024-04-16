@@ -14,7 +14,7 @@ urlpatterns = [
     path('book1/', views.BookInfoGenericAPIView.as_view()),
     path('book1/<int:pk>/', views.BookInfoGenericAPIView.as_view()),
     path('book1/del/<int:pk>/', views.BookInfoDelete.as_view()),
-    path('book1/upload/', views.BookFileView.as_view()),
+    # path('book1/upload/', views.BookFileView.as_view()),
     path('book1/upload/<int:pk>/', views.BookFileView.as_view()),
     path('login/', TokenObtainPairView.as_view()),
     # path('book/<int:pk>', views.BookInfoAPIView.as_view())
