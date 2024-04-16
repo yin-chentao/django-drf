@@ -87,10 +87,10 @@ WSGI_APPLICATION = 'DRF.wsgi.application'
 DATABASES = {
     "default": {
         'ENGINE': 'dj_db_conn_pool.backends.mysql',
-        'NAME': 'django_drf',  # 数据库名字
+        'NAME': 'django-drf',  # 数据库名字
         'USER': 'root',
-        'PASSWORD': 'a135246A',
-        'HOST': '10.100.70.14',  # ip
+        'PASSWORD': '123456',
+        'HOST': 'localhost',  # ip
         'PORT': 3306,
         'POOL_OPTIONS': {
             'POOL_SIZE': 10,  # 最小
