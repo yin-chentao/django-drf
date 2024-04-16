@@ -94,10 +94,7 @@ class BookInfoGenericAPIView(GenericAPIView, ListModelMixin, CreateModelMixin, R
     def get(self, request, *args, **kwargs):
         # 传参存在ID则查询单条数据不存在则查询所有数据
         if kwargs.get('pk', None):
-            if self.retrieve(request).data:
-                return CustomResponse(code=status.HTTP_200_OK, msg='OK', data=[self.retrieve(request).data])
-            else:
-                return CustomResponse(code=status.HTTP_404_NOT_FOUND, msg='无数据', data=[])
+            return CustomResponse(code=status.HTTP_200_OK, msg='OK', data=[self.retrieve(request).data])
         else:
             return self.list(request)
 
