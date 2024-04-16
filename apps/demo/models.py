@@ -20,7 +20,7 @@ class BookInfo(models.Model):
 
 class BookFile(models.Model):
     name = models.CharField(max_length=20, verbose_name='文件名')
-    file = models.FileField()
+    file = models.FileField(upload_to='book/')
     createby = models.CharField(max_length=30, default='system', verbose_name='创建人')
     editby = models.CharField(max_length=30, default=None, verbose_name='修改人', blank=True, null=True)
 

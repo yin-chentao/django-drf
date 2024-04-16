@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from DRF import views
+from apps.demo import views as demo_views
 from django.urls import path, include
 
 urlpatterns = [
@@ -25,5 +26,6 @@ urlpatterns = [
     path('sers/', include('apps.sers.urls')),
     path('req/', include('apps.req.urls')),
     path('demo/', include('apps.demo.urls')),
+    path('media/book/<str:filename>/', demo_views.BookFileDownload.as_view()),
 
 ]

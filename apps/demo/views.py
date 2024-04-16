@@ -2,16 +2,17 @@ import json
 
 from django.shortcuts import render
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.parsers import FileUploadParser, MultiPartParser
 from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework import status
 import os
-from django.http import HttpResponse, FileResponse, StreamingHttpResponse
+from django.http import HttpResponse, FileResponse
 from django.utils.encoding import escape_uri_path
 
 from .customresponse import CustomResponse
+from DRF.settings import BASE_DIR
 from .serializers import BookInfoModuleSerializers, UploadedFileSerializer
 from .models import BookInfo, BookFile
 from .mypage import MyPage
@@ -69,7 +70,7 @@ class BookInfoAPIView(APIView):
 class BookInfoGenericAPIView(GenericAPIView, ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin):
     # lookup_field = 'pk'
     pagination_class = MyPage
-    queryset = BookInfo.objects.all()
+    queryset = BookInfo.objects.all().order_by('id')
     serializer_class = BookInfoModuleSerializers
 
     def create(self, request, *args, **kwargs):
@@ -108,22 +109,17 @@ class BookInfoGenericAPIView(GenericAPIView, ListModelMixin, CreateModelMixin, R
             return CustomResponse(code=status.HTTP_200_OK, msg='OK')
 
 
-class BookInfoDelete(APIView):
-    serializer_book = BookInfoModuleSerializers
-    queryset_book = BookInfo.objects.all()
+class BookInfoDelete(GenericAPIView, DestroyModelMixin):
+    serializer_class = BookInfoModuleSerializers
+    queryset = BookInfo.objects.all()
 
-    def post(self, request):
-        book_id = request.data.get("id")
-        try:
-            book = self.queryset_book.get(pk=book_id)
-        except BookInfo.DoesNotExist:
-            return CustomResponse(code=status.HTTP_400_BAD_REQUEST, msg="该数据已删除")
-        book.delete()
+    def post(self, request, *args, **kwargs):
+        self.destroy(request)
         return Response({'code': status.HTTP_200_OK, "msg": "删除成功", })
 
 
-class BookFileView(ListCreateAPIView, ListModelMixin, RetrieveModelMixin, UpdateModelMixin):
-    queryset = BookFile.objects.all()
+class BookFileView(ListCreateAPIView, RetrieveModelMixin, UpdateModelMixin):
+    queryset = BookFile.objects.all().order_by('id')
     pagination_class = MyPage
     serializer_class = UploadedFileSerializer
     parser_classes = (MultiPartParser, FileUploadParser)
@@ -155,14 +151,16 @@ class BookFileDownload(GenericAPIView):
     # parser_classes = (MultiPartParser, FileUploadParser)
 
     def get(self, request, *args, **kwargs):
-        file_id = kwargs.get('pk')
-        file_path = str(self.get_queryset().get(id=file_id).file)
-        file_name = str(self.get_queryset().get(id=file_id).file)
-        file_path = os.path.join(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'media'), file_path)
+        # file_path = request.query_params.get('filename')
+        file_name = kwargs.get('filename')
+        # file_id = kwargs.get('pk')
+        # file_path = str(self.get_queryset().get(id=file_id).file)
+        # file_name = str(self.get_queryset().get(id=file_id).file)
+        file_path = os.path.join(os.path.join(BASE_DIR, 'media/book'), file_name)
         if os.path.exists(file_path):
             response = FileResponse(open(file_path, 'rb'))
             response['Content-Type'] = "application/octet-stream"
             response['Content-Disposition'] = 'attachment; filename="{}"'.format(escape_uri_path(file_name))
             return response
         else:
-            return HttpResponse("Sorry, the file you requested does not exist.")
+            return CustomResponse(code=status.HTTP_404_NOT_FOUND, msg="Sorry, the file you requested does not exist.")
