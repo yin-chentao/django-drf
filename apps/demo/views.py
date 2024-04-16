@@ -97,7 +97,7 @@ class BookInfoGenericAPIView(GenericAPIView, ListModelMixin, CreateModelMixin, R
             if self.retrieve(request).data:
                 return CustomResponse(code=status.HTTP_200_OK, msg='OK', data=[self.retrieve(request).data])
             else:
-                CustomResponse(code=status.HTTP_404_NOT_FOUND, msg='无数据', data=[])
+                return CustomResponse(code=status.HTTP_404_NOT_FOUND, msg='无数据', data=[])
         else:
             return self.list(request)
 
