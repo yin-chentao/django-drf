@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from DRF import views
+from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.demo import views as demo_views
 from django.urls import path, include
 
@@ -26,6 +27,7 @@ urlpatterns = [
     path('sers/', include('apps.sers.urls')),
     path('req/', include('apps.req.urls')),
     path('demo/', include('apps.demo.urls')),
+    path('login/', TokenObtainPairView.as_view()),
     path('media/book/<str:filename>/', demo_views.BookFileDownload.as_view()),
 
 ]
