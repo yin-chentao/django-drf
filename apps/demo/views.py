@@ -187,7 +187,6 @@ class UserPassword(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        password = request.data.get('password')
         new_password = request.data.get('new_password')
         password_confirmation = request.data.get('password_confirmation')
         try:
