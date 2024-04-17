@@ -208,4 +208,5 @@ class UserPassword(GenericAPIView):
         # 更新用户会话，确保用户在密码更改后仍然保持登录状态
         update_session_auth_hash(request, user)
         return CustomResponse(code=status.HTTP_200_OK,
-                              msg='密码已成功重置。')  # else:  #     return CustomResponse(code=status.HTTP_200_OK, msg='原始不正确密码')
+                              msg='密码已成功重置。')
+        # else:  #     return CustomResponse(code=status.HTTP_200_OK, msg='原始不正确密码')
