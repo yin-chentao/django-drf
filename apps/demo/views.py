@@ -1,19 +1,23 @@
 import json
 
+from django.contrib.auth import update_session_auth_hash, get_user_model
 from django.shortcuts import render
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
+from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, \
+    DestroyModelMixin
 from rest_framework.parsers import FileUploadParser, MultiPartParser
-from rest_framework.generics import GenericAPIView, ListCreateAPIView
+from rest_framework.generics import GenericAPIView, ListCreateAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework import status
 import os
 from django.http import HttpResponse, FileResponse
 from django.utils.encoding import escape_uri_path
+from django.contrib.auth.models import User
 
 from .customresponse import CustomResponse
 from DRF.settings import BASE_DIR
-from .serializers import BookInfoModuleSerializers, UploadedFileSerializer
+from .serializers import *
 from .models import BookInfo, BookFile
 from .mypage import MyPage
 
@@ -148,6 +152,7 @@ class BookFileView(ListCreateAPIView, RetrieveModelMixin, UpdateModelMixin):
 class BookFileDownload(GenericAPIView):
     queryset = BookFile.objects.all()
     serializer_class = UploadedFileSerializer
+
     # parser_classes = (MultiPartParser, FileUploadParser)
 
     def get(self, request, *args, **kwargs):
@@ -164,3 +169,50 @@ class BookFileDownload(GenericAPIView):
             return response
         else:
             return CustomResponse(code=status.HTTP_404_NOT_FOUND, msg="Sorry, the file you requested does not exist.")
+
+
+class UserRegister(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        self.create(request)
+        return CustomResponse(code=status.HTTP_200_OK, msg='OK')
+
+
+class UserPassword(GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPasswordChange
+    permission_classes = (IsAuthenticated,)
+
+
+    def post(self, request, *args, **kwargs):
+        password = request.data.get('password')
+        new_password = request.data.get('new_password')
+        password_confirmation = request.data.get('password_confirmation')
+        try:
+            user = request.user
+        except User.DoesNotExist:
+            return CustomResponse(code=status.HTTP_404_NOT_FOUND, msg='用户名不匹配，请检查输入。')
+
+        # 在这里可以进行额外的验证，例如检查用户状态等
+        # result = user.check_password(request.data.get('password'))
+        # if result:
+            # 处理密码重置逻辑
+        # if password == new_password:
+        #     return CustomResponse(code=status.HTTP_400_BAD_REQUEST, msg='与原密码重复')
+
+        if new_password != password_confirmation:
+            return CustomResponse(code=status.HTTP_400_BAD_REQUEST, msg='两次输入的密码不一致')
+        user.set_password(new_password)
+        user.save()
+        # 更新用户会话，确保用户在密码更改后仍然保持登录状态
+        update_session_auth_hash(request, user)
+        return CustomResponse(code=status.HTTP_200_OK, msg='密码已成功重置。')
+        # else:
+        #     return CustomResponse(code=status.HTTP_200_OK, msg='原始不正确密码')
+
+
+
+

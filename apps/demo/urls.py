@@ -11,6 +11,8 @@ route = routers.DefaultRouter()  # 创建路由
 urlpatterns = [
     path('book/', views.BookInfoAPIView.as_view()),
     path('book1/', views.BookInfoGenericAPIView.as_view()),
+    path('reg/', views.UserRegister.as_view()),
+    path('change/password/', views.UserPassword.as_view()),
     path('book1/<int:pk>/', views.BookInfoGenericAPIView.as_view()),
     path('book1/del/<int:pk>/', views.BookInfoDelete.as_view()),
     path('book1/upload/', views.BookFileView.as_view()),
