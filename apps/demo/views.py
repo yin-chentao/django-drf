@@ -181,7 +181,7 @@ class UserRegister(CreateAPIView):
         return CustomResponse(code=status.HTTP_200_OK, msg='OK')
 
 
-class UserPassword(GenericAPIView):
+class UserPassword(GenericAPIView, ListModelMixin):
     queryset = User.objects.all()
     serializer_class = UserPasswordChange
     permission_classes = (IsAuthenticated,)
