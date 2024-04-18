@@ -189,7 +189,7 @@ class UserPassword(GenericAPIView):
     def save(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        request.user.save()
+        return request.user.save()
 
     def post(self, request, *args, **kwargs):
         new_password = request.data.get('new_password')
@@ -199,23 +199,8 @@ class UserPassword(GenericAPIView):
             if new_password != password_confirmation:
                 return CustomResponse(code=status.HTTP_400_BAD_REQUEST, msg='两次输入的密码不一致')
             self.save(request)
+            update_session_auth_hash(request, user)
+            return CustomResponse(code=status.HTTP_200_OK, msg='密码已成功重置。')
         except User.DoesNotExist:
             return CustomResponse(code=status.HTTP_404_NOT_FOUND, msg='用户名不匹配，请检查输入。')
 
-        # 在这里可以进行额外的验证，例如检查用户状态等
-        # result = user.check_password(request.data.get('password'))
-        # if result:
-        # 处理密码重置逻辑
-        # if password == new_password:
-        #     return CustomResponse(code=status.HTTP_400_BAD_REQUEST, msg='与原密码重复')
-
-
-        # user_password = UserPasswordChange(data=request.data)
-        # user_password.is_valid(raise_exception=True)
-        # user.set_password(new_password)
-        # user.save()
-        # 更新用户会话，确保用户在密码更改后仍然保持登录状态
-        update_session_auth_hash(request, user)
-        return CustomResponse(code=status.HTTP_200_OK,
-                              msg='密码已成功重置。')
-        # else:  #     return CustomResponse(code=status.HTTP_200_OK, msg='原始不正确密码')
