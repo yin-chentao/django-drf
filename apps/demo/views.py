@@ -203,6 +203,8 @@ class UserPassword(GenericAPIView):
 
         if new_password != password_confirmation:
             return CustomResponse(code=status.HTTP_400_BAD_REQUEST, msg='两次输入的密码不一致')
+        user_password = UserPasswordChange(data=request.data)
+        user_password.is_valid(raise_exception=True)
         user.set_password(new_password)
         user.save()
         # 更新用户会话，确保用户在密码更改后仍然保持登录状态

@@ -48,6 +48,6 @@ class UserPasswordChange(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}, "new_password": {"write_only": True},
                         "password_confirmation": {"write_only": True}, "id": {"read_only": True}}
 
-    def validated_new_password(self, value):
-        validate_password(value, self.context['user'])
+    def validate_new_password(self, value):
+        validate_password(value)
         return value
