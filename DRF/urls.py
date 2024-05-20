@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from DRF import views
 from rest_framework_simplejwt.views import TokenObtainPairView,TokenBlacklistView
+from rest_framework.documentation import include_docs_urls
 from apps.demo import views as demo_views
 from django.urls import path, include
 
@@ -30,5 +31,6 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view()),
     path('logout/', TokenBlacklistView.as_view()),
     path('media/book/<str:filename>/', demo_views.BookFileDownload.as_view()),
+    path('docs/', include_docs_urls(title='API文档')),
 
 ]
