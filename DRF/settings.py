@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'DRF.wsgi.application'
 DATABASES = {
     "default": {
         'ENGINE': 'dj_db_conn_pool.backends.mysql',
-        'NAME': 'django-drf',  # 数据库名字
+        'NAME': 'django_drf',  # 数据库名字
         'USER': 'root',
         'PASSWORD': '123456',
         'HOST': 'localhost',  # ip
