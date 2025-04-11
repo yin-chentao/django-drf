@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.req.apps.ReqConfig',
     'apps.sers.apps.SersConfig',
     'apps.demo.apps.DemoConfig',
+    'apps.my_messages.apps.MessagesConfig',
     'rest_framework',
     'rest_framework_simplejwt',
 ]
@@ -79,6 +80,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'DRF.wsgi.application'
+MAX_EXCEL_UPLOAD_SIZE = 10 * 1024 * 1024
 
 
 # Database
@@ -87,11 +89,12 @@ WSGI_APPLICATION = 'DRF.wsgi.application'
 DATABASES = {
     "default": {
         'ENGINE': 'dj_db_conn_pool.backends.mysql',
-        'NAME': 'django-drf',  # 数据库名字
+        'NAME': 'django_drf',  # 数据库名字
         'USER': 'root',
         'PASSWORD': '123456',
         'HOST': 'localhost',  # ip
         'PORT': 3306,
+        'TIME_ZONE': 'Asia/Shanghai',
         'POOL_OPTIONS': {
             'POOL_SIZE': 10,  # 最小
             'MAX_OVERFLOW': 10,  # 在最小的基础上，还可以增加10个，即：最大20个。
@@ -136,7 +139,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -157,7 +160,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         # 设置全局权限模式，用户认证通过可访问
         # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
-        'rest_framework.permissions.IsAuthenticated',
+        # 'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # 使用默认的认证类的认证方式

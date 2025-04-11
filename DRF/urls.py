@@ -27,6 +27,7 @@ urlpatterns = [
     path('sers/', include('apps.sers.urls')),
     path('req/', include('apps.req.urls')),
     path('demo/', include('apps.demo.urls')),
+    path('my_messages/', include('apps.my_messages.urls')),
     path('login/', TokenObtainPairView.as_view()),
     path('logout/', TokenBlacklistView.as_view()),
     path('media/book/<str:filename>/', demo_views.BookFileDownload.as_view()),
