@@ -100,19 +100,19 @@ class ConversationAPI(APIView):
             for msg in messages:
                 conv_id = msg.conversation_id
                 if conv_id not in conversations:
-                    conversations[conv_id] = {"conversation_id": conv_id, "participants": sorted([msg.fromid, msg.tolist]),
-                                              "messages": []}
+                    conversations[conv_id] = {"conversation_id": conv_id,
+                                              "participants": sorted([msg.fromid, msg.tolist]), "messages": []}
                 conversations[conv_id]["messages"].append(MessageSerializer(msg).data)
             return Response({"conversations": list(conversations.values())})
 
         else:
-            # 返回所有对话组，按时间正序排列
+            # 返回所有对话组，按时间正序排列:
             all_messages = Message.objects.all().order_by('msgtime')
             conversations = {}
             for msg in all_messages:
                 conv_id = msg.conversation_id
                 if conv_id not in conversations:
-                    conversations[conv_id] = {"conversation_id": conv_id, "participants": sorted([msg.fromid, msg.tolist]),
-                                              "messages": []}
+                    conversations[conv_id] = {"conversation_id": conv_id,
+                                              "participants": sorted([msg.fromid, msg.tolist]), "messages": []}
                 conversations[conv_id]["messages"].append(MessageSerializer(msg).data)
             return Response({"conversations": list(conversations.values())})
