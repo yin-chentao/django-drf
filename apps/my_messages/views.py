@@ -7,6 +7,7 @@ from .models import Message
 from .ser import MessageSerializer
 from rest_framework.parsers import FileUploadParser, MultiPartParser
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from django.conf import settings
 import pandas as pd
 from io import BytesIO
@@ -89,30 +90,28 @@ class ExcelUploadAPI(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ConversationAPI(APIView):
-    def get(self, request):
+class ConversationList(ListAPIView):
+    queryset = Message.objects.all().order_by('msgtime')
+    serializer_class = MessageSerializer
+
+    def get(self, request, *args, **kwargs):
         fromid = request.query_params.get('fromid')
 
         if fromid:
             # 查询与 fromid 相关的所有对话组
-            messages = Message.objects.filter(Q(fromid=fromid) | Q(tolist=fromid)).order_by('msgtime')
-            conversations = {}
-            for msg in messages:
-                conv_id = msg.conversation_id
-                if conv_id not in conversations:
-                    conversations[conv_id] = {"conversation_id": conv_id,
-                                              "participants": sorted([msg.fromid, msg.tolist]), "messages": []}
-                conversations[conv_id]["messages"].append(MessageSerializer(msg).data)
-            return Response({"conversations": list(conversations.values())})
+            self.queryset = Message.objects.filter(Q(fromid=fromid) | Q(tolist=fromid)).order_by('msgtime')
 
-        else:
-            # 返回所有对话组，按时间正序排列:
-            all_messages = Message.objects.all().order_by('msgtime')
-            conversations = {}
-            for msg in all_messages:
-                conv_id = msg.conversation_id
-                if conv_id not in conversations:
-                    conversations[conv_id] = {"conversation_id": conv_id,
-                                              "participants": sorted([msg.fromid, msg.tolist]), "messages": []}
-                conversations[conv_id]["messages"].append(MessageSerializer(msg).data)
-            return Response({"conversations": list(conversations.values())})
+        messages = self.get_queryset()
+        conversations = {}
+        for msg in messages:
+            conv_id = msg.conversation_id
+            if conv_id not in conversations:
+                conversations[conv_id] = {
+                    "conversation_id": conv_id,
+                    "participants": sorted([msg.fromid, msg.tolist]),
+                    "messages": []
+                }
+            conversations[conv_id]["messages"].append(self.get_serializer(msg).data)
+
+        return Response({"conversations": list(conversations.values())})
+
